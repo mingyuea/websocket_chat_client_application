@@ -1,0 +1,25 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat|Arimo);
+
+.onlineCont{
+	border: 1px solid rgba(0,0,0,0.1);
+	border-radius: 5px 0px 0px 5px;
+	background-color: rgba(171, 181, 188, 0.6);
+}
+
+.header{
+	font-family: 'Montserrat';
+	margin: 0px -15px 0px -15px;
+	padding-top: 10px;
+	font-size: 26px;
+	text-align: center;
+	height: 12%;
+	min-height: 55px;
+	border-bottom: 1px solid black;
+	background-color: white;
+}
+
+.emptyDiv{
+	margin-top: 35px;
+	font-family: 'Arimo';
+	font-size: 18px;
+}
