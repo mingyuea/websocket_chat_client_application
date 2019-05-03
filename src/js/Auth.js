@@ -53,12 +53,9 @@ class Auth extends React.Component{
 			}
 			else{
 				console.log("logging in", this.state.uInput);
-				//this.props.socket.emit('login', this.state.uInput, this.state.p1Input)
 				this.setState({
 					spinner: true
 				});
-
-
 
 				fetch('/auth/signup', {
 					method: "POST",
@@ -85,21 +82,6 @@ class Auth extends React.Component{
 			this.setState({
 				spinner: true
 			});
-
-			/*this.props.socket.emit('login', this.state.uInput, this.state.p1Input, (success, err) => {
-				console.log(success);
-
-				if(success){
-					this.setState({
-						redirect: true
-					});
-				}
-				else{
-					this.setState({
-						error: err
-					})
-				}
-			})*/
 
 			fetch('/auth/login', {
 					method: "POST",

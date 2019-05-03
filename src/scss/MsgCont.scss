@@ -1,7 +1,9 @@
+$myGreen: rgba(47, 224, 82, 1);
+$myBlue: rgba(51, 117, 224, 1);
+
 .mainCont{
 	height: 85%;
-	max-height: 85%;
-	padding: 20px 2px 10px 10px;
+	padding: 20px 2px 40px 10px;
 }
 
 .chatHeader{
@@ -30,11 +32,53 @@
 
 .leftBlock{
 	@extend .blockShared;
-	background-color: rgba(52, 128, 186, 1);
+	background-color: $myBlue;
 }
 
 .rightBlock{
 	@extend .blockShared;
 	margin-right: 10px;
-	background-color: rgba(47, 224, 82, 1);
+	background-color: $myGreen;
+}
+
+.btnContainer{
+	position: absolute;
+	cursor: pointer;
+	display: inline-block;
+	right: 10px;
+	margin-bottom: 3px;
+}
+
+.headerTxt{
+	font-size: 12px;
+	margin-left: 3px;
+}
+
+.acceptFR{
+	background-color: $myGreen;
+	text-align: center;
+}
+
+.acceptTxt{
+	font-size: 12px;
+	margin: 0px 40px 0px 2px;
+}
+
+.acceptTxt:hover{
+	cursor:pointer;
+}
+
+.removeSpan{
+	position: absolute;
+	margin-top: 5px;
+	right: 15px;
+	font-size: 12px;
+}
+
+.removeSpan:hover{
+	cursor: pointer
+}
+
+.acceptTxt:hover{
+	cursor: pointer;
 }

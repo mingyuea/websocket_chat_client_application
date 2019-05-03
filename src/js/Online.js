@@ -1,5 +1,5 @@
 import React from "react";
-import { Col, ListGroup, ListGroupItem } from "reactstrap";
+import { ListGroup, ListGroupItem } from "reactstrap";
 import Style from "../scss/Online.scss";
 
 class Online extends React.PureComponent{
@@ -10,30 +10,38 @@ class Online extends React.PureComponent{
 	}
 
 	handleSel(e){
-		let id = e.currentTarget.id;
-		id = id.split(":")[1];
-		console.log(id);
-		this.props.onSel(id);
+		let ind = e.currentTarget.id;
+		ind = ind.split(":")[1];
+		let username = this.props.users[ind];
+		console.log(ind, username);
+		this.props.onSel(username);
 	}
+	//<span className={Style.notifSpan}>{this.props.inMsg[username] ? this.props.inMsg[username].length : this.props.inFR.includes(username) ? "!" : ""}</span>
 
 	render(){
-		console.log("online pdate");
+		console.log(this.props.inMsg, this.props.inFR, this.props.onlineList);
 		let renderList = <div className={Style.emptyDiv}>NO ONE ELSE IS HERE PRESENTLY</div>;
 
 		if(this.props.users.length > 0){
-			renderList = this.props.users.map((userObj, ind) => <ListGroupItem key={"user:"+userObj.id} id={"userInd:"+userObj.username} onClick={this.handleSel}>
-				{userObj.username}
-			</ListGroupItem>)
+			if(this.props.defaultView){
+
+				renderList = this.props.users.map((username, ind) => <ListGroupItem key={"user:"+ind} id={"userInd:"+ind} style={{cursor: "pointer"}} onClick={this.handleSel}>
+					{username}
+					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username].length}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
+				</ListGroupItem>)
+			}
+			else{
+				renderList = this.props.users.map((username, ind) => <ListGroupItem key={"user:"+ind} id={"userInd:"+ind} onClick={this.handleSel}>
+					<span className={this.props.onlineList.includes(username) ? Style.onlineDot : Style.offlineDot}></span>
+					{username}
+					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username].length}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
+				</ListGroupItem>)
+			}
 		}
 		return(
-			<Col xs="5" md="4" lg="3" className={"mh-100 " + Style.onlineCont}>
-				<div className={Style.header}>
-					ONLINE
-				</div>
 				<ListGroup>
 					{renderList}
 				</ListGroup>
-			</Col>
 		);
 	}
 }
