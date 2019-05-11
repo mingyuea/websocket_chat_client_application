@@ -76,7 +76,8 @@ class MsgCont extends React.PureComponent{
 	render(){
 		let rendMsg;
 		let chatHeader;
-		let msgArr
+		
+		/*let msgArr
 
 		if(this.props.histArr){
 			msgArr = [...this.props.histArr, ...this.props.currArr]
@@ -84,6 +85,7 @@ class MsgCont extends React.PureComponent{
 		else{
 			msgArr = this.props.currArr;
 		}
+		*/
 
 		//console.log(msgArr);
 		//console.log(this.props.currChat != null && !this.props.friendReq);
@@ -119,7 +121,7 @@ class MsgCont extends React.PureComponent{
 					</div>
 			}
 			
-			rendMsg = msgArr.map((msgObj, ind) => {
+			rendMsg = this.props.histArr.map((msgObj, ind) => {
 				if(msgObj.uid){
 					return <Row className="justify-content-end mr-0"><div className={Style.rightBlock}>{msgObj.msg}</div></Row>
 				}else{
@@ -128,7 +130,7 @@ class MsgCont extends React.PureComponent{
 			});
 		}
 		else{
-			rendMsg = <Row className="justify-content-center p-4">Pick someone to start a chat with</Row>
+			rendMsg = <Row className="justify-content-center p-4"><span className={Style.pickMsg}>Pick someone to start a chat with</span></Row>
 		}
 
 		return(

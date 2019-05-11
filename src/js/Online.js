@@ -19,22 +19,22 @@ class Online extends React.PureComponent{
 	//<span className={Style.notifSpan}>{this.props.inMsg[username] ? this.props.inMsg[username].length : this.props.inFR.includes(username) ? "!" : ""}</span>
 
 	render(){
-		console.log(this.props.inMsg, this.props.inFR, this.props.onlineList);
+		console.log("inMsgs", this.props.inMsg);
 		let renderList = <div className={Style.emptyDiv}>NO ONE ELSE IS HERE PRESENTLY</div>;
 
 		if(this.props.users.length > 0){
 			if(this.props.defaultView){
-
+				//if you're currently viewing the "Online Now" list
 				renderList = this.props.users.map((username, ind) => <ListGroupItem key={"user:"+ind} id={"userInd:"+ind} style={{cursor: "pointer"}} onClick={this.handleSel}>
 					{username}
-					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username].length}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
+					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username]}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
 				</ListGroupItem>)
 			}
 			else{
-				renderList = this.props.users.map((username, ind) => <ListGroupItem key={"user:"+ind} id={"userInd:"+ind} onClick={this.handleSel}>
+				renderList = this.props.users.map((username, ind) => <ListGroupItem key={"user:"+ind} id={"userInd:"+ind} style={{cursor: "pointer"}} onClick={this.handleSel}>
 					<span className={this.props.onlineList.includes(username) ? Style.onlineDot : Style.offlineDot}></span>
 					{username}
-					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username].length}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
+					{this.props.inMsg[username] ? <span className={Style.notifSpan}>{this.props.inMsg[username]}</span> : this.props.inFR.includes(username) ? <span className={Style.notifSpan}>!</span> : null}
 				</ListGroupItem>)
 			}
 		}

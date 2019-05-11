@@ -29,7 +29,7 @@ class Chat extends React.PureComponent{
 			myName: null,
 			connected: false,
 			defaultView: true,
-			incomingMsgs: {},   //{username: [msgs]}
+			incomingMsgs: {},   //{username: msgCount}
 			notifs: {},   //{username: 'msg, fr, both'} (true to inicate msgs, false to indicate friendrequest, what happens if both)? or maybe an array [username]?
 			userList: [],
 			friendsList: [],
@@ -37,14 +37,13 @@ class Chat extends React.PureComponent{
 			currentChat: null,  //username of person currently chatting with
 			error: false,
 			errMsg: null,
-			chatHist: [...example],
-			chatList: [...example],  //an array of msgObjects {uid: [0 or 1], msg: String}
+			chatHist: [],
 			msgRollbackCounter: 0
 		}
 
 		this.socket;
 
-		this.handleExit = this.handleExit.bind(this);
+		//this.handleExit = this.handleExit.bind(this);
 		this.handleListToggle = this.handleListToggle.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleSelectUser = this.handleSelectUser.bind(this);
@@ -59,14 +58,12 @@ class Chat extends React.PureComponent{
 	
 	handleSelectUser(username){
 		if(this.state.currentChat != username){
-			console.log("chat list is",this.state.chatList);
 			let newNotifType, newStateObj;
 
 			if(this.state.notifs[username] && this.state.notifs[username] != 'fr'){
 					/*This means notifs definitely includes awaiting msgs*/
 					let notifCopy = JSON.parse(JSON.stringify(this.state.notifs));
 					let inMsgCopy = JSON.parse(JSON.stringify(this.state.incomingMsgs));
-					console.log(notifCopy, inMsgCopy)
 
 					if(notifCopy[username] == 'msg'){
 						delete notifCopy[username];
@@ -85,33 +82,20 @@ class Chat extends React.PureComponent{
 					let newChatList = inMsgCopy[username];
 
 					if(newChatList){
-						newChatList = newChatList.map(msgStr => {
-							return {uid: false, msg: msgStr}
-						});
-
 						delete inMsgCopy[username];
-
-						newStateObj["chatList"] = newChatList;
 						newStateObj["incomingMsgs"] = inMsgCopy;
-					}
-					else{
-						newStateObj["chatList"] = [];
 					}
 			}
 			else{
 					newStateObj = {
-						currentChat: username,
-						chatList: []
+						currentChat: username
 					};
 			}
 
 
-			this.socket.emit('switchUser', this.state.currentChat, this.state.chatList, username, newNotifType, (newChatHist) => {
-				/*
-				this should set this.state.chatList = incomingMsgs[username]
-				*/
+			this.socket.emit('switchUser', username, newNotifType, (newChatHist) => {
 				newStateObj["chatHist"] = newChatHist;
-				console.log('the new chat hist is', newChatHist);
+				//console.log('the new chat hist is', newChatHist);
 
 				this.setState(newStateObj);				
 			});
@@ -124,185 +108,30 @@ class Chat extends React.PureComponent{
 		});
 	}
 
-	/*handleSubmit(e){
-		e.preventDefault();
-		if(this.state.currentChat){
-			this.props.socket.emit("message", this.state.input, this.state.currentChat);
-		}
-		else{
-			this.setState({
-				error: "Pick someone to chat with!"
-			});
-		}
-	}*/
 
 	handleSubmit(inStr){
 		if(this.state.currentChat){
-			let copyArr = [...this.state.chatList];
+			let copyArr = [...this.state.chatHist];
 			copyArr.push({uid: true, msg: inStr});
-
-			/*this.setState({
-				chatList: copyArr
-			})*/
 
 			this.socket.emit('message', inStr, this.state.currentChat, () => {
 				this.setState({
-					chatList: copyArr
+					chatHist: copyArr
 				})
 			});
+		}
+		else{
+			toast(<div>You must pick someone to chat with first</div>, {type: "error"})
 		}
 	}
 
 	handleError(errMsg){
-		/*
-		this.setState({
-			error: true,
-			errMsg: errMsg
-		}, () => {
-			setTimeout(() => {
-					this.setState({
-						error: false,
-					})
-				}, 6000)
-		});
-		*/
 		toast(<div>Error: {errMsg}</div>, {type: "error"})
-	}
-
-	/*testErr(e){
-		e.preventDefault();
-		console.log("Error testing");
-		this.handleError("Testing");
-	}*/
-
-	/*componentDidMount(){
-		let socket = this.props.socket;
-		console.log(this.props.socket);
-
-		socket.emit("pollUsers", (usersObj) => {
-			console.log("onlineCheck")
-			console.log(usersObj);
-			let userList = [];
-
-			for (let user in usersObj){
-				userList.push({"username": user, "id": usersObj[user]})
-			}
-
-			this.setState({
-				userList: userList
-			})
-		});
-
-		socket.on("newUser", (newUserObj) => {
-			console.log("A NEW USER SIGNED ON!");
-			let copyUser = [...this.state.userList];
-			copyUser.push(newUserObj);
-
-			this.setState({
-				userList: copyUser
-			})
-		});
-
-		socket.on("inMsg", (msg) =>{
-			console.log(msg);
-		});
-
-		socket.on("updateUsers", (usersObj) => {
-			console.log("user left")
-			let userList = [];
-
-			for (let user in usersObj){
-				userList.push({"username": user, "id": usersObj[user]})
-			}
-
-			this.setState({
-				userList: userList
-			})
-		})
-	}*/
-
-
-	/* VERSION 2
-	componentDidMount(){
-		if(!this.state.connected){
-			this.setState({
-				connected: true
-			});
-		}
-
-		//fetch list of online users, freinds, and newMsgs when first sign on
-		NOT NEEDED, REPLACED BY userInit RESPONSE HANDLER
-		socket.emit("pollUsers", (usersArr) => {
-			usersArr.split(usersArr.indexOf(this.state.myName, 1));
-			
-			//for (let user in usersObj){
-			//	userList.push({"username": user, "id": usersObj[user]})
-			//}
-
-			console.log("pollusers", usersArr);
-
-			this.setState({
-				userList: usersArr
-			})
-		});
-		
-
-
-		when the user first signs on, a check will be done for any user notif
-		NOT NEEDED, REPLACED BY userInit RESPONSE HANDLER
-		socket.on("init", (notifList, frList) =>{
-			//this should sort out fr list, and set all fr+new msgs to notifs
-			this.setState({
-				incomingFRList: frList,
-				notif: notifList
-			});
-		});
-		
-
-		socket.on("inMsg", (msg) =>{
-			console.log(msg);
-		});
-
-		socket.on("updateUsers", (usersObj) => {
-			console.log("user left")
-			let userList = [];
-
-			for (let user in usersObj){
-				userList.push({"username": user, "id": usersObj[user]})
-			}
-
-			this.setState({
-				userList: userList
-			})
-		})
-	}
-	*/
-
-	handleExit(e){
-		e.preventDefault();
-		e.returnValue = '';
-
-		let reqBody = {
-			"msgArr":this.state.chatList,
-			"lastPartner": this.state.currentChat,
-			"unreadMsgs": this.state.incomingMsgs,
-			"notifs": this.state.notifs,
-			"frList": this.state.incomingFRList
-		}
-
-		fetch("/exit", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(reqBody)
-		})
-		.then(res => {return ''});
 	}
 
 	requestFriend(){
 		let frUser = this.state.currentChat;
-		console.log("requesting friend", frUser);
+		//console.log("requesting friend", frUser);
 		this.socket.emit('sendFR', frUser);
 	}
 
@@ -337,14 +166,12 @@ class Chat extends React.PureComponent{
 			stateObj["notifs"] = copyNotifs;
 		}
 
-		this.socket.emit('acceptFR', partnerName, currNotif, () => {
+		this.socket.emit('acceptFR', partnerName, () => {
 			this.setState(stateObj);
 		})
 	}
 
 	handleRemoveFriend(username){
-		console.log(username);
-
 		this.socket.emit('removeFriend', username, (actionSuccess, err) => {
 			if(actionSuccess){
 				let copyFriends = [...this.state.friendsList];
@@ -362,7 +189,6 @@ class Chat extends React.PureComponent{
 	}
 
 	componentDidMount(){
-		console.log("MOUNTED");
 
 		(() => {
 			let myCookies = document.cookie.split(";");
@@ -376,20 +202,12 @@ class Chat extends React.PureComponent{
 	    	})
     	})();
 
-
-		/*
-		-----------UNCOMMENT FOR PRODUCTION----------------
-
-		window.addEventListener("beforeunload", this.handleExit);
-		*/
-
 		this.socket = io.connect(socketServer, {transports: ['websocket']});
 		let socket = this.socket;
 
 		socket.on('connect', () => {
-			console.log("CONNECTED");
-			socket.emit('userInit', ( onlineList, notifObj, inFRList, friendsList) => {
-				console.log('got notifications and freinds', onlineList, notifObj, inFRList, friendsList);
+			socket.emit('userInit', ( onlineList, notifObj, inFRList, friendsList, inMsgObj) => {
+				//console.log('got notifications and freinds', onlineList, notifObj, inFRList, friendsList, inMsgObj);
 
 				onlineList.splice(onlineList.indexOf(this.state.myName, 1));
 
@@ -397,36 +215,40 @@ class Chat extends React.PureComponent{
 					userList: onlineList,
 					friendsList: friendsList,
 					incomingFRList: inFRList,
-					notifs: notifObj
+					notifs: notifObj,
+					incomingMsgs: inMsgObj
 				});
 			});
 		});
 
 
 		socket.on('inMsg', (senderName, input) => {
-			console.log('incoming msgs', senderName, input)
+			//console.log('incoming msgs', senderName, input)
 			if(senderName == this.state.currentChat){
 				//if you received a message from someone you're currently chatting with
-				let copyList = [...this.state.chatList];
+				let copyList = [...this.state.chatHist];
 				copyList.push({uid: false, msg: input});
 
 				this.setState({
-					chatList: copyList
+					chatHist: copyList
 				});
 			}
 			else{
-				//else, add it to your incomingMsgs and notif list
+				//else, emit a saveNotif, add it to your incomingMsgs and notif list
+				socket.emit('updateMsgNotif', senderName);
+
 				let copyInMsgs = JSON.parse(JSON.stringify(this.state.incomingMsgs));
 
 				if(this.state.notifs[senderName] == undefined){
+					/*if no notifs exists, create one now*/
 					let copyNotifs = JSON.parse(JSON.stringify(this.state.notifs));
 					copyNotifs[senderName] = "msg";
 
 					if(copyInMsgs[senderName]){
-						copyInMsgs[senderName].push(input);
+						copyInMsgs[senderName] = copyInMsgs[senderName] + 1;
 					}
 					else{
-						copyInMsgs[senderName] = [input];
+						copyInMsgs[senderName] = 1;
 					}
 
 					this.setState({
@@ -435,14 +257,15 @@ class Chat extends React.PureComponent{
 					});
 				}
 				else if(this.state.notifs[senderName] == "fr"){
+					/*if notif is FR, set to both*/
 					let copyNotifs = JSON.parse(JSON.stringify(this.state.notifs));
 					copyNotifs[senderName] = "both";
 
 					if(copyInMsgs[senderName]){
-						copyInMsgs[senderName].push(input);
+						copyInMsgs[senderName] = copyInMsgs[senderName] + 1;
 					}
 					else{
-						copyInMsgs[senderName] = [input];
+						copyInMsgs[senderName] = 1;
 					}
 
 					this.setState({
@@ -452,10 +275,10 @@ class Chat extends React.PureComponent{
 				}
 				else{
 					if(copyInMsgs[senderName]){
-						copyInMsgs[senderName].push(input);
+						copyInMsgs[senderName] = copyInMsgs[senderName] + 1;
 					}
 					else{
-						copyInMsgs[senderName] = [input];
+						copyInMsgs[senderName] = 1;
 					}
 
 					this.setState({
@@ -498,12 +321,13 @@ class Chat extends React.PureComponent{
 
 		/*handles err*/
 		socket.on('newError', (errMsg) => {
-			console.log('err recieved', errMsg);
+			console.error('err recieved', errMsg);
 			this.handleError(errMsg)
 		});
 
 
 		/*this should update chatlist*/
+		/*REMOVED SINCE chatList ISN'T USED ANYMORE
 		socket.on("updateChatlist", (senderName) => {
 			if(this.state.currentChat != senderName){
 				console.log("updating chatlist for curr user")
@@ -518,17 +342,20 @@ class Chat extends React.PureComponent{
 				console.log("not current chat partner, no chatlist update");
 			}
 		})
+		*/
 
 
 		/*when a new user signs on, adds username to userlist*/
 		socket.on("newUser", (newUsername) => {
-			console.log("A NEW USER SIGNED ON!");
 			let copyUser = [...this.state.userList];
-			copyUser.push(newUsername);
 
-			this.setState({
-				userList: copyUser
-			})
+			if(!copyUser.includes(newUsername)){
+				copyUser.push(newUsername);
+
+				this.setState({
+					userList: copyUser
+				});
+			}
 		});
 
 
@@ -545,17 +372,21 @@ class Chat extends React.PureComponent{
 			/*This should delete all the users incomingMsgs, since it'll be saved to db */
 		});
 
+		socket.on("FRAccepted", (username) => {
+			let copyFriends = [...this.state.friendsList];
+			copyFriends.push(username);
 
+			toast(<div>{username} accepted your friend request</div>, {type: "success"});
+
+			this.setState({
+				friendsList: copyFriends
+			});
+		})
 		/**/
 	}
 
 	componentWillUnmount(){
-		//window.removeEventListener("beforeunload", this.handleExit);
 		this.socket.emit('disconnect');
-	}
-
-	componentDidUpdate(){
-		console.log(this.state.notifs);
 	}
 
 	render(){
@@ -584,7 +415,7 @@ class Chat extends React.PureComponent{
 						<Col xs="7" md="8" lg="9" className={"mh-100 " + Style.chatCont}>
 							<MsgCont 
 								currChat={this.state.currentChat} 
-								histArr={this.state.chatHist} currArr={this.state.chatList} 
+								histArr={this.state.chatHist} 
 								friendReq={this.state.incomingFRList.includes(this.state.currentChat)} 
 								onFR={this.requestFriend} acceptFR={this.handleAcceptFR} 
 								isFriend={this.state.friendsList.includes(this.state.currentChat)} 
